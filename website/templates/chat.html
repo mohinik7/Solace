@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Chatbot{% endblock %}
+{% block content %}
+  <h1>Chat with our Mental Health Chatbot</h1>
+  
+  <div id="chat-window" style="border:1px solid #ccc; height:300px; overflow-y:scroll; padding:10px;">
+    <!-- Display previous messages -->
+    {% for msg in messages %}
+      <div>
+        <strong>{{ msg.role|capitalize }}:</strong> {{ msg.message }}
+      </div>
+    {% endfor %}
+  </div>
+  
+  <br>
+  <form id="chat-form">
+    <div class="form-group">
+      <input type="text" class="form-control" id="user-input" placeholder="Type your message here">
+    </div>
+    <button type="submit" class="btn btn-primary">Send</button>
+  </form>
+{% endblock %}
+
+{% block javascript %}
+<script>
+document.getElementById('chat-form').addEventListener('submit', async function(e){
+    e.preventDefault();
+    const inputElem = document.getElementById('user-input');
+    const userInput = inputElem.value;
+    if (!userInput.trim()) return;
+    
+    // Append user's message to chat window
+    const chatWindow = document.getElementById('chat-window');
+    const userMsgDiv = document.createElement('div');
+    userMsgDiv.innerHTML = '<strong>You:</strong> ' + userInput;
+    chatWindow.appendChild(userMsgDiv);
+    inputElem.value = '';
+    
+    // Send message to Flask endpoint
+    const response = await fetch("/chat-response", {
+      method: "POST",
+      headers: {
+          "Content-Type": "application/json"
+      },
+      body: JSON.stringify({user_input: userInput})
+    });
+    
+    const data = await response.json();
+    // Append chatbot's response to chat window
+    const botMsgDiv = document.createElement('div');
+    botMsgDiv.innerHTML = '<strong>Chatbot:</strong> ' + data.response;
+    chatWindow.appendChild(botMsgDiv);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+});
+</script>
+{% endblock %}
