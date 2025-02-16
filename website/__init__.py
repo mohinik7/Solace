@@ -1,29 +1,36 @@
-from flask import Flask
+from flask import Flask, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from os import path
 from flask_login import LoginManager
+import os
 
 db = SQLAlchemy()
 DB_NAME = "database.db"
 
 def create_app():
     app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'hjshjhdjah kjshkjdhjs'
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev_secret')
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
     db.init_app(app)
 
-    from .views import views
-    from .auth import auth
-    from .chat import chat  # Import the chat blueprint
+    from .models import User, ChatSession, ChatMessage
 
-    app.register_blueprint(views, url_prefix='/')
-    app.register_blueprint(auth, url_prefix='/')
-    app.register_blueprint(chat, url_prefix='/')  # Register the chat blueprint
-
-    from .models import User, Note
-    
     with app.app_context():
         db.create_all()
+
+    # Blueprints
+    from .auth import auth
+    from .chat import chat
+    app.register_blueprint(auth, url_prefix='/')
+    app.register_blueprint(chat, url_prefix='/')
+
+    # Make the root path redirect to chatbot or login if not authenticated
+    @app.route('/')
+    def index():
+     from flask_login import current_user
+     if current_user.is_authenticated:
+        return redirect(url_for('chat.chat_sessions'))
+     else:
+        return redirect(url_for('auth.login'))
 
     login_manager = LoginManager()
     login_manager.login_view = 'auth.login'
@@ -34,10 +41,3 @@ def create_app():
         return User.query.get(int(id))
 
     return app
-
-
-def create_database(app):
-    if not path.exists('website/' + DB_NAME):
-        with app.app_context():
-            db.create_all()
-            print("Database Created!")
