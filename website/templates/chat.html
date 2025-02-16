@@ -25,33 +25,33 @@
 {% endblock %}
 {% block javascript %}
 <script>
-document.getElementById('chat-form').addEventListener('submit', async function(e){
-    e.preventDefault();
-    const sessionId = this.getAttribute('data-session-id');
-    const inputElem = document.getElementById('user-input');
-    const userInput = inputElem.value;
-    if (!userInput.trim()) return;
-    
-    const chatWindow = document.getElementById('chat-window');
-    // Display user's message
-    const userMsgDiv = document.createElement('div');
-    userMsgDiv.innerHTML = '<strong>You:</strong> ' + userInput;
-    chatWindow.appendChild(userMsgDiv);
-    inputElem.value = '';
-
-    // Send message to Flask
-    const response = await fetch('/chat-response/' + sessionId, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({user_input: userInput})
-    });
-
-    const data = await response.json();
-    // Display chatbot response
-    const botMsgDiv = document.createElement('div');
-    botMsgDiv.innerHTML = '<strong>Chatbot:</strong> ' + data.response;
-    chatWindow.appendChild(botMsgDiv);
-    chatWindow.scrollTop = chatWindow.scrollHeight;
-});
-</script>
+  document.getElementById('chat-form').addEventListener('submit', async function(e){
+      e.preventDefault();
+      const sessionId = this.getAttribute('data-session-id');
+      const inputElem = document.getElementById('user-input');
+      const userInput = inputElem.value;
+      if (!userInput.trim()) return;
+      
+      const chatWindow = document.getElementById('chat-window');
+      // Append user's message
+      const userMsgDiv = document.createElement('div');
+      userMsgDiv.innerHTML = '<strong>You:</strong> ' + userInput;
+      chatWindow.appendChild(userMsgDiv);
+      inputElem.value = '';
+  
+      // Send message to the Flask endpoint
+      const response = await fetch('/chat-response/' + sessionId, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({user_input: userInput})
+      });
+  
+      const data = await response.json();
+      // Append chatbot's response (which may include HTML links)
+      const botMsgDiv = document.createElement('div');
+      botMsgDiv.innerHTML = '<strong>Chatbot:</strong> ' + data.response;
+      chatWindow.appendChild(botMsgDiv);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+  });
+  </script>  
 {% endblock %}

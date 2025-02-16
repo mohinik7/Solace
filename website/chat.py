@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import login_required, current_user
-from .chatbot import chatbot_response
+from .chatbot import chatbot_response,check_crisis
 from .models import ChatMessage, ChatSession
 from . import db
 
@@ -35,20 +35,33 @@ def chat_page(session_id):
 @chat.route('/chat-response/<int:session_id>', methods=['POST'])
 @login_required
 def chat_response(session_id):
+    # Retrieve the chat session for the logged-in user
     session = ChatSession.query.filter_by(id=session_id, user_id=current_user.id).first_or_404()
     
     data = request.get_json()
     user_input = data.get("user_input", "")
     
-    # Save the user's message.
+    # Save the user's message in the database
     user_msg = ChatMessage(chat_session_id=session_id, role='user', message=user_input)
     db.session.add(user_msg)
     db.session.commit()
     
-    # Get the chatbot response.
+    # Check if the input indicates a crisis
+    if check_crisis(user_input):
+        crisis_message = (
+            "It seems you're in significant distress. If you're in immediate danger, please call your local emergency services immediately. "
+            "For those in the United States, please click <a href='tel:911'>here</a> to call 911 immediately. "
+            "Alternatively, if you need professional support, click <a href='https://esanjeevani.mohfw.gov.in/#/' target='_blank'>here</a> to connect with a telehealth professional."
+        )
+        assistant_msg = ChatMessage(chat_session_id=session_id, role='assistant', message=crisis_message)
+        db.session.add(assistant_msg)
+        db.session.commit()
+        return jsonify({"response": crisis_message})
+    
+    # Otherwise, process the message normally
     response_text = chatbot_response(user_input)
     
-    # Save the assistant's response.
+    # Save the chatbot's normal response in the database
     assistant_msg = ChatMessage(chat_session_id=session_id, role='assistant', message=response_text)
     db.session.add(assistant_msg)
     db.session.commit()

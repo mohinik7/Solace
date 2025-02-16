@@ -1,6 +1,6 @@
-from langchain_community.embeddings import HuggingFaceBgeEmbeddings
-from langchain.document_loaders import PyPDFLoader, DirectoryLoader
-from langchain.vectorstores import Chroma
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader
+from langchain_chroma import Chroma
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -22,8 +22,8 @@ def create_vector_db():
     documents = loader.load()
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     texts = text_splitter.split_documents(documents)
-    embeddings = HuggingFaceBgeEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
-    vector_db = Chroma.from_documents(texts, embeddings, persist_directory='./chroma_db')
+    embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
+    vector_db = Chroma(persist_directory=db_path, embedding_function=embeddings)
     vector_db.persist()
     print("ChromaDB created and data saved")
     return vector_db
@@ -52,13 +52,38 @@ db_path = "./chroma_db"
 if not os.path.exists(db_path):
     vector_db = create_vector_db()
 else:
-    embeddings = HuggingFaceBgeEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
+    embeddings = HuggingFaceEmbeddings(model_name='sentence-transformers/all-MiniLM-L6-v2')
     vector_db = Chroma(persist_directory=db_path, embedding_function=embeddings)
+
     
 qa_chain = setup_qa_chain(vector_db, llm)
+
+def check_crisis(user_input):
+    """
+    Checks whether the provided input contains any crisis-related keywords.
+    Returns True if a crisis trigger is detected, else False.
+    """
+    crisis_keywords = [
+        "i want to hurt myself",
+        "i want to kill myself",
+        "i can't go on",
+        "i don't want to live",
+        "suicide",
+        "self-harm",
+        "end my life",
+        "overdose"
+    ]
+    lower_input = user_input.lower()
+    for keyword in crisis_keywords:
+        if keyword in lower_input:
+            return True
+    return False
+
+
 
 def chatbot_response(user_input):
     if not user_input.strip():
         return "Please provide a valid input."
     assistant_response = qa_chain.run(user_input)
     return assistant_response
+
