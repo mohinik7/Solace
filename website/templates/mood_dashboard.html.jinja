@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Mood Dashboard{% endblock %}
+{% block content %}
+  <h2>Mood Dashboard</h2>
+  {% if timestamps and scores and timestamps|length > 0 and scores|length > 0 %}
+    <canvas id="moodChart" width="400" height="200"></canvas>
+  {% else %}
+    <p>No mood data available yet. Start chatting to record mood entries!</p>
+  {% endif %}
+{% endblock %}
+{% block javascript %}
+  {% if timestamps and scores and timestamps|length > 0 and scores|length > 0 %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      (function() {
+        const ctx = document.getElementById('moodChart').getContext('2d');
+        const timestamps = {{ timestamps | tojson }};
+        const scores = {{ scores | tojson }};
+        
+        const moodChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: timestamps,
+            datasets: [{
+              label: 'Sentiment Score',
+              data: scores,
+              borderColor: 'rgba(241,196,15,1)',
+              backgroundColor: 'rgba(241,196,15,0.2)',
+              fill: true,
+            }]
+          },
+          options: {
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: 'Time'
+                }
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: 'Sentiment Score'
+                },
+                suggestedMin: -1,
+                suggestedMax: 1
+              }
+            }
+          }
+        });
+      })();
+    </script>
+  {% endif %}
+{% endblock %}

@@ -1,7 +1,8 @@
 from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import login_required, current_user
+from .mood import analyze_mood
 from .chatbot import chatbot_response,check_crisis
-from .models import ChatMessage, ChatSession
+from .models import ChatMessage, ChatSession, MoodEntry
 from . import db
 
 chat = Blueprint('chat', __name__)
@@ -46,6 +47,12 @@ def chat_response(session_id):
     db.session.add(user_msg)
     db.session.commit()
     
+    # Analyze the mood of the user's message
+    sentiment, key_phrases = analyze_mood(user_input)
+    mood_entry = MoodEntry(chat_session_id=session_id, sentiment_score=sentiment, key_phrases=key_phrases)
+    db.session.add(mood_entry)
+    db.session.commit()
+    
     # Check if the input indicates a crisis
     if check_crisis(user_input):
         crisis_message = (
@@ -79,3 +86,36 @@ def delete_chat(session_id):
     db.session.commit()
     flash("Chat session deleted successfully", "success")
     return redirect(url_for('chat.chat_sessions'))
+
+@chat.route('/mood-dashboard')
+@login_required
+def mood_dashboard():
+    # Retrieve all mood entries for the current user (across all chat sessions)
+    mood_entries = (db.session.query(MoodEntry)
+                    .join(ChatSession, MoodEntry.chat_session_id == ChatSession.id)
+                    .filter(ChatSession.user_id == current_user.id)
+                    .order_by(MoodEntry.timestamp.asc())
+                    .all())
+    timestamps = [entry.timestamp.strftime("%Y-%m-%d %H:%M:%S") for entry in mood_entries]
+    scores = [entry.sentiment_score for entry in mood_entries]
+    
+    return render_template("mood_dashboard.html.jinja", user=current_user, timestamps=timestamps, scores=scores)
+
+# website/chat.py
+@chat.route('/edit-chat/<int:session_id>', methods=['GET', 'POST'])
+@login_required
+def edit_chat(session_id):
+    session_obj = ChatSession.query.filter_by(id=session_id, user_id=current_user.id).first_or_404()
+
+    if request.method == 'POST':
+        new_name = request.form.get('session_name')
+        if new_name.strip():
+            session_obj.session_name = new_name
+            db.session.commit()
+            flash("Chat session name updated!", "success")
+        else:
+            flash("Session name cannot be empty.", "error")
+        return redirect(url_for('chat.chat_sessions'))
+
+    return render_template('edit_chat.html', session=session_obj, user=current_user)
+

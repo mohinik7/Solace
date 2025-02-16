@@ -26,10 +26,12 @@
       .navbar {
         background-color: #000000;
       }
-      .navbar-brand, .nav-link {
+      .navbar-brand,
+      .nav-link {
         color: #f1c40f !important; /* gold accent */
       }
-      .navbar-brand:hover, .nav-link:hover {
+      .navbar-brand:hover,
+      .nav-link:hover {
         color: #f39c12 !important;
       }
 
@@ -49,7 +51,6 @@
         margin-top: 30px;
       }
     </style>
-
   </head>
   <body>
     <nav class="navbar navbar-expand-lg">
@@ -60,7 +61,7 @@
         data-toggle="collapse"
         data-target="#navbarResponsive"
       >
-        <span class="navbar-toggler-icon" style="color: #f1c40f;"></span>
+        <span class="navbar-toggler-icon" style="color: #f1c40f"></span>
       </button>
 
       <div class="collapse navbar-collapse" id="navbarResponsive">
@@ -71,6 +72,11 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="/chat/new">New Chat</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('chat.mood_dashboard') }}"
+              >Mood Dashboard</a
+            >
           </li>
           <li class="nav-item">
             <a class="nav-link" href="/logout">Logout</a>
@@ -87,31 +93,25 @@
       </div>
     </nav>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          {% if category == 'error' %}
-            <div class="alert alert-danger alert-dismissable fade show" role="alert">
-              {{ message }}
-              <button type="button" class="close" data-dismiss="alert">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-          {% else %}
-            <div class="alert alert-success alert-dismissable fade show" role="alert">
-              {{ message }}
-              <button type="button" class="close" data-dismiss="alert">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-          {% endif %}
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-
-    <div class="container">
-      {% block content %}{% endblock %}
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %} {% for category, message in messages %} {% if category ==
+    'error' %}
+    <div class="alert alert-danger alert-dismissable fade show" role="alert">
+      {{ message }}
+      <button type="button" class="close" data-dismiss="alert">
+        <span aria-hidden="true">&times;</span>
+      </button>
     </div>
+    {% else %}
+    <div class="alert alert-success alert-dismissable fade show" role="alert">
+      {{ message }}
+      <button type="button" class="close" data-dismiss="alert">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    {% endif %} {% endfor %} {% endif %} {% endwith %}
+
+    <div class="container">{% block content %}{% endblock %}</div>
 
     <!-- Bootstrap JS -->
     <script
