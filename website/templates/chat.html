@@ -1,9 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Chatbot{% endblock %}
+{% block title %}Chat Session{% endblock %}
 {% block content %}
-  <h1>Chat with our Mental Health Chatbot</h1>
+  <h1>Chat Session</h1>
   
-  <div id="chat-window" style="border:1px solid #ccc; height:300px; overflow-y:scroll; padding:10px;">
+  <!-- Link to go back to all chat sessions -->
+  <a href="{{ url_for('chat.chat_sessions') }}" class="btn btn-secondary mb-3">Back to Sessions</a>
+  
+  <!-- Chat Window -->
+  <div id="chat-window" style="border:1px solid #ccc; height:300px; overflow-y:scroll; padding:10px; margin-top:20px;">
     <!-- Display previous messages -->
     {% for msg in messages %}
       <div>
@@ -13,18 +17,19 @@
   </div>
   
   <br>
-  <form id="chat-form">
+  <!-- Chat Form -->
+  <form id="chat-form" data-session-id="{{ session_id }}">
     <div class="form-group">
       <input type="text" class="form-control" id="user-input" placeholder="Type your message here">
     </div>
     <button type="submit" class="btn btn-primary">Send</button>
   </form>
 {% endblock %}
-
 {% block javascript %}
 <script>
-document.getElementById('chat-form').addEventListener('submit', async function(e){
+document.getElementById('chat-form').addEventListener('submit', async function(e) {
     e.preventDefault();
+    const sessionId = this.getAttribute('data-session-id');
     const inputElem = document.getElementById('user-input');
     const userInput = inputElem.value;
     if (!userInput.trim()) return;
@@ -36,13 +41,13 @@ document.getElementById('chat-form').addEventListener('submit', async function(e
     chatWindow.appendChild(userMsgDiv);
     inputElem.value = '';
     
-    // Send message to Flask endpoint
-    const response = await fetch("/chat-response", {
-      method: "POST",
-      headers: {
-          "Content-Type": "application/json"
-      },
-      body: JSON.stringify({user_input: userInput})
+    // Send message to the Flask endpoint for this session
+    const response = await fetch('/chat-response/' + sessionId, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ user_input: userInput })
     });
     
     const data = await response.json();
