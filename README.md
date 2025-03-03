@@ -1,7 +1,5 @@
 # Solace: Mental Health & Mood Tracking Application
 
-![Solace Banner](https://via.placeholder.com/1200x300/212946/FFFFFF/?text=Solace:+Mental+Health+Companion)
-
 ## 🌟 Overview
 
 Solace is a comprehensive mental health companion designed to help users track, analyze, and improve their emotional well-being. With its space-themed interface and intuitive design, Solace provides a calming environment for users to record their moods and gain valuable insights into their emotional patterns.
