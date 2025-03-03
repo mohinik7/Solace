@@ -68,8 +68,11 @@ Solace is a comprehensive mental health companion designed to help users track, 
    ```
 
 ## 📸 Screenshots
+![screencapture-127-0-0-1-5000-2025-03-03-11_57_26](https://github.com/user-attachments/assets/9aedcc0b-18ac-449a-8e3c-2d1b9aeecb98)
+![screencapture-127-0-0-1-5000-chat-2025-03-03-11_58_50](https://github.com/user-attachments/assets/18a855d9-2911-4c0a-8809-c08f18506c6e)
+![screencapture-127-0-0-1-5000-chat-1-2025-03-03-11_59_29](https://github.com/user-attachments/assets/bc8bae27-6273-44c4-b61c-8d3403d2b058)
+![screencapture-127-0-0-1-5000-mood-dashboard-2025-03-03-12_00_16](https://github.com/user-attachments/assets/2fbea9f9-3bba-4d6a-9ca3-9dac3b1336b1)
 
-_(You can add screenshots of your application here)_
 
 ## 🤝 Contributing
 
