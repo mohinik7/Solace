@@ -1,0 +1,83 @@
+{% extends "base.html" %} {% block title %}Upload Background Video{% endblock %}
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h3 class="mb-0">Upload Background Video</h3>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info">
+            <h5>Upload Requirements:</h5>
+            <ul>
+              <li>Maximum file size: 50MB</li>
+              <li>Format: MP4 only</li>
+              <li>Recommended resolution: 1920x1080 or higher</li>
+              <li>The video should be appropriate for a space theme</li>
+            </ul>
+          </div>
+
+          {% with messages = get_flashed_messages(with_categories=true) %} {% if
+          messages %} {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %} {% endif %} {% endwith %}
+
+          <form
+            action="{{ url_for('video.video_upload') }}"
+            method="post"
+            enctype="multipart/form-data"
+          >
+            <div class="form-group mb-4">
+              <label for="video" class="form-label">Select MP4 Video:</label>
+              <input
+                type="file"
+                class="form-control"
+                id="video"
+                name="video"
+                accept="video/mp4"
+                required
+              />
+            </div>
+            <button type="submit" class="btn btn-primary">Upload Video</button>
+          </form>
+
+          {% if current_video %}
+          <div class="mt-5">
+            <h4>Current Background Video</h4>
+            <div class="card">
+              <div class="card-body">
+                <p><strong>Filename:</strong> {{ current_video }}</p>
+                <div class="ratio ratio-16x9 mb-3">
+                  <video controls>
+                    <source
+                      src="{{ url_for('static', filename='videos/' + current_video) }}"
+                      type="video/mp4"
+                    />
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
+                <form
+                  action="{{ url_for('video.remove_video') }}"
+                  method="post"
+                >
+                  <button type="submit" class="btn btn-danger">
+                    Remove Video
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="mt-4">
+            <a href="{{ url_for('index') }}" class="btn btn-secondary"
+              >Back to Home</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

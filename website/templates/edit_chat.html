@@ -1,20 +1,64 @@
-{% extends "base.html" %}
-{% block title %}Edit Chat{% endblock %}
-{% block content %}
-<h2>Edit Chat Name</h2>
-<form method="POST">
-  <div class="form-group">
-    <label for="session_name">Session Name</label>
-    <input
-      type="text"
-      name="session_name"
-      id="session_name"
-      class="form-control"
-      value="{{ session.session_name }}"
-      required
-    >
+{% extends "base.html" %} {% block title %}Edit Conversation - Solace{% endblock
+%} {% block content %}
+<div class="container fade-in">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card">
+        <div class="card-header py-3">
+          <h3 class="text-center mb-0">
+            <i class="fas fa-edit me-2"></i> Rename Conversation
+          </h3>
+        </div>
+        <div class="card-body">
+          <form method="POST">
+            <div class="mb-4">
+              <label for="session_name" class="form-label"
+                >Conversation Name</label
+              >
+              <div class="input-group">
+                <span class="input-group-text bg-transparent border-end-0">
+                  <i
+                    class="fas fa-comment-dots"
+                    style="color: var(--secondary-color)"
+                  ></i>
+                </span>
+                <input
+                  type="text"
+                  name="session_name"
+                  id="session_name"
+                  class="form-control border-start-0"
+                  value="{{ session.session_name }}"
+                  required
+                />
+              </div>
+              <small class="text-muted mt-2"
+                >Choose a meaningful name for this conversation</small
+              >
+            </div>
+
+            <div class="d-flex justify-content-between">
+              <a
+                href="{{ url_for('chat.chat_sessions') }}"
+                class="btn btn-secondary"
+              >
+                <i class="fas fa-arrow-left me-2"></i> Cancel
+              </a>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-2"></i> Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="text-center mt-4">
+        <p class="text-muted">
+          <i class="fas fa-info-circle me-2"></i>
+          The conversation content will remain unchanged
+        </p>
+      </div>
+    </div>
   </div>
-  <button type="submit" class="btn btn-primary">Save</button>
-  <a href="{{ url_for('chat.chat_sessions') }}" class="btn btn-secondary">Cancel</a>
-</form>
-{% endblock %}
+</div>
+{% endblock %} {% block additional_styles %} .input-group-text { color:
+var(--text-color); } {% endblock %}

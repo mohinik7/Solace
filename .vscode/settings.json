@@ -1,5 +1,10 @@
 {
     "python.analysis.extraPaths": [
       "C:\\Users\\MOHINI\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages"
-    ]
+    ],
+    
+    "files.associations": {
+    "*.html": "jinja-html"
+  }
+    
   }

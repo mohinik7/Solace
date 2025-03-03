@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Weekly Mood Dashboard{% endblock %}
+{% block content %}
+<h2>Weekly Mood Trends</h2>
+<div>
+  <canvas id="weeklyMoodChart" width="600" height="300"></canvas>
+</div>
+<p>Weekly Average Score: {{ weekly_avg|round(2) }}</p>
+{% endblock %}
+{% block javascript %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+(function(){
+  const ctx = document.getElementById('weeklyMoodChart').getContext('2d');
+  const weekData = {{ week_data|tojson }};
+  
+  const labels = weekData.map(d => d.date);
+  const dataPoints = weekData.map(d => d.avg_score);
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Daily Mood Score',
+        data: dataPoints,
+        borderColor: 'rgba(241,196,15,1)',
+        backgroundColor: 'rgba(241,196,15,0.2)',
+        fill: true,
+      }]
+    },
+    options: {
+      scales: {
+        y: {
+          suggestedMin: -1,
+          suggestedMax: 1
+        }
+      }
+    }
+  });
+})();
+</script>
+{% endblock %}

@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from .mood import analyze_mood
 from .chatbot import chatbot_response,check_crisis
 from .models import ChatMessage, ChatSession, MoodEntry
-from . import db
+from . import db  # Import directly from __init__.py
 
 chat = Blueprint('chat', __name__)
 

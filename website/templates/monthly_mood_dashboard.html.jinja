@@ -1,0 +1,730 @@
+{% extends "base.html" %}
+
+{% block title %}Monthly Mood Dashboard - Solace{% endblock %}
+
+{% block content %}
+<div class="container-fluid mood-dashboard-container fade-in py-4">
+  <div class="dashboard-header">
+    <h1>Monthly Mood Analysis</h1>
+  </div>
+
+  <div class="dashboard-tabs">
+    <a href="{{ url_for('mood.daily_mood_dashboard') }}" class="tab">Daily</a>
+    <a href="{{ url_for('mood.weekly_mood_dashboard') }}" class="tab">Weekly</a>
+    <a href="{{ url_for('mood.monthly_mood_dashboard') }}" class="tab active">Monthly</a>
+  </div>
+
+  <div class="date-navigator">
+    <button class="nav-button prev" onclick="navigateMonth('prev')">&lt;</button>
+    <span class="current-date">{{ formatted_month_str }}</span>
+    <button class="nav-button next" onclick="navigateMonth('next')">&gt;</button>
+  </div>
+
+  {% if no_data_message %}
+  <div class="no-data-message">
+    <p>{{ no_data_message }}</p>
+    <a href="{{ url_for('chat.new_chat') }}" class="btn">Start Chatting</a>
+  </div>
+  {% else %}
+  
+  <div class="card mood-trend">
+    <h3>Month at a Glance</h3>
+    <div class="trend-metrics">
+      <div class="metric">
+        <div class="metric-value {% if month_avg > 0.3 %}positive{% elif month_avg < -0.3 %}negative{% else %}neutral{% endif %}">
+          {{ (month_avg * 100)|round(0)|int }}
+        </div>
+        <div class="metric-label">Average Mood</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value {% if mood_volatility > 50 %}high{% elif mood_volatility < 20 %}low{% else %}medium{% endif %}">
+          {{ mood_volatility }}%
+        </div>
+        <div class="metric-label">Mood Volatility</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">
+          {{ entries_count }}
+        </div>
+        <div class="metric-label">Total Entries</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="card chart-card">
+    <h3>Daily Mood Trends</h3>
+    <div class="chart-container">
+      <canvas id="monthlyMoodChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card emotion-breakdown">
+    <h3>Monthly Emotion Breakdown</h3>
+    <div class="emotion-bars">
+      <div class="emotion">
+        <div class="emotion-label">Happiness</div>
+        <div class="progress-container">
+          <div class="progress-bar happiness" style="width: {{ emotion_breakdown.happiness }}%"></div>
+          <span class="percentage">{{ emotion_breakdown.happiness }}%</span>
+        </div>
+      </div>
+      <div class="emotion">
+        <div class="emotion-label">Anxiety</div>
+        <div class="progress-container">
+          <div class="progress-bar anxiety" style="width: {{ emotion_breakdown.anxiety }}%"></div>
+          <span class="percentage">{{ emotion_breakdown.anxiety }}%</span>
+        </div>
+      </div>
+      <div class="emotion">
+        <div class="emotion-label">Stress</div>
+        <div class="progress-container">
+          <div class="progress-bar stress" style="width: {{ emotion_breakdown.stress }}%"></div>
+          <span class="percentage">{{ emotion_breakdown.stress }}%</span>
+        </div>
+      </div>
+      <div class="emotion">
+        <div class="emotion-label">Calm</div>
+        <div class="progress-container">
+          <div class="progress-bar calm" style="width: {{ emotion_breakdown.calm }}%"></div>
+          <span class="percentage">{{ emotion_breakdown.calm }}%</span>
+        </div>
+      </div>
+      <div class="emotion">
+        <div class="emotion-label">Sadness</div>
+        <div class="progress-container">
+          <div class="progress-bar sadness" style="width: {{ emotion_breakdown.sadness }}%"></div>
+          <span class="percentage">{{ emotion_breakdown.sadness }}%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card monthly-insights">
+    <h3>Monthly Insights</h3>
+    <div class="insights-content">
+      <ul>
+        {% for insight in monthly_insights %}
+        <li>{{ insight }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  
+  <div class="card calendar-card">
+    <h3>Mood Calendar</h3>
+    <div class="calendar-heatmap"></div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block additional_styles %}
+.mood-dashboard-container {
+  padding-bottom: 6rem;
+}
+
+/* Dashboard styling with space theme */
+.dashboard-header {
+  background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+  color: var(--text-color);
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: var(--secondary-color);
+}
+
+.dashboard-tabs {
+  display: flex;
+  margin-bottom: 20px;
+  background: rgba(30, 30, 42, 0.7);
+  border-radius: 15px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.tab {
+  padding: 12px 30px;
+  text-align: center;
+  flex: 1;
+  text-decoration: none;
+  color: var(--text-color);
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.tab.active {
+  background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+  color: var(--secondary-color);
+}
+
+.tab:hover {
+  background-color: rgba(138, 43, 226, 0.3);
+}
+
+.date-navigator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding: 10px 15px;
+  background: rgba(30, 30, 42, 0.7);
+  border-radius: 15px;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.current-date {
+  font-weight: 500;
+  font-size: 1.1rem;
+  color: var(--text-color);
+  padding: 5px 10px;
+}
+
+.nav-button {
+  background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+  color: var(--text-color);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.nav-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.card {
+  background-color: rgba(30, 30, 42, 0.7);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  padding: 20px;
+  margin-bottom: 25px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+}
+
+.card h3 {
+  margin-top: 0;
+  color: var(--secondary-color);
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+}
+
+.chart-container {
+  height: 250px;
+  position: relative;
+  margin-top: 10px;
+}
+
+/* Monthly metrics styling */
+.trend-metrics {
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.metric {
+  padding: 15px;
+  border-radius: 10px;
+  background: rgba(40, 40, 60, 0.4);
+  border: 1px solid rgba(255, 215, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.metric:hover {
+  transform: translateY(-3px);
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.metric-label {
+  font-size: 0.9rem;
+  color: var(--text-color);
+}
+
+.metric-value.positive {
+  color: #8BC34A;
+}
+
+.metric-value.negative {
+  color: #FF5252;
+}
+
+.metric-value.neutral {
+  color: var(--secondary-color);
+}
+
+.metric-value.high {
+  color: #FF5252;
+}
+
+.metric-value.medium {
+  color: #FFA726;
+}
+
+.metric-value.low {
+  color: #8BC34A;
+}
+
+/* Emotion breakdown styling */
+.emotion {
+  margin-bottom: 15px;
+}
+
+.emotion-label {
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.progress-container {
+  height: 24px;
+  background: rgba(40, 40, 60, 0.5);
+  border-radius: 8px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 8px;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.progress-bar.happiness {
+  background: linear-gradient(45deg, #4CAF50, #8BC34A);
+}
+
+.progress-bar.anxiety {
+  background: linear-gradient(45deg, #FFA726, #FF9800);
+}
+
+.progress-bar.stress {
+  background: linear-gradient(45deg, #FF5252, #F44336);
+}
+
+.progress-bar.calm {
+  background: linear-gradient(45deg, #42A5F5, #2196F3);
+}
+
+.progress-bar.sadness {
+  background: linear-gradient(45deg, #7B1FA2, #9C27B0);
+}
+
+.percentage {
+  position: relative;
+  margin-left: 10px;
+  font-weight: 500;
+  z-index: 1;
+  color: var(--text-color);
+}
+
+/* Monthly insights */
+.monthly-insights ul {
+  padding-left: 20px;
+}
+
+.monthly-insights li {
+  margin-bottom: 10px;
+  color: var(--text-color);
+}
+
+.insights-content {
+  max-height: 350px;
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+/* Custom scrollbar */
+.insights-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.insights-content::-webkit-scrollbar-track {
+  background: rgba(40, 40, 60, 0.3);
+  border-radius: 3px;
+}
+
+.insights-content::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 3px;
+}
+
+/* Calendar styling */
+.calendar-heatmap {
+  margin-top: 20px;
+}
+
+.calendar-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 5px;
+}
+
+.calendar-day-header {
+  text-align: center;
+  font-weight: 500;
+  color: var(--text-color);
+  font-size: 0.9rem;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: default;
+  border: 1px solid rgba(255, 215, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.calendar-day.empty {
+  background-color: transparent;
+  border: none;
+}
+
+.calendar-day.has-data {
+  cursor: pointer;
+}
+
+.calendar-day.has-data:hover {
+  transform: scale(1.1);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  z-index: 5;
+}
+
+.day-number {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.calendar-tooltip {
+  position: absolute;
+  background-color: rgba(18, 18, 24, 0.9);
+  color: var(--text-color);
+  border: 1px solid var(--secondary-color);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  z-index: 10;
+  pointer-events: none;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.chart-card {
+  grid-column: span 2;
+}
+
+.calendar-card {
+  grid-column: span 2;
+  margin-top: 20px;
+}
+
+.no-data-message {
+  text-align: center;
+  padding: 50px 20px;
+  background-color: rgba(30, 30, 42, 0.7);
+  border-radius: 15px;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  margin-bottom: 25px;
+}
+
+.no-data-message p {
+  color: var(--text-color);
+  margin-bottom: 20px;
+  font-size: 1.2rem;
+}
+
+.no-data-message .btn {
+  background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+  color: var(--text-color);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.no-data-message .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+@media (max-width: 768px) {
+  .trend-metrics {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .chart-card, .calendar-card {
+    grid-column: span 1;
+  }
+}
+{% endblock %}
+
+{% block scripts %}
+{% if not no_data_message %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+(function(){
+  const ctx = document.getElementById('monthlyMoodChart').getContext('2d');
+  const monthlyData = {{ daily_data|tojson }};
+  
+  // Transform the data for display
+  const labels = monthlyData.map(d => d.day);
+  const dataPoints = monthlyData.map(d => (d.avg_score + 1) * 50); // Convert -1,1 to 0,100 scale
+  
+  // Create gradient for the line
+  const gradient = ctx.createLinearGradient(0, 0, 0, 250);
+  gradient.addColorStop(0, 'rgba(138, 43, 226, 0.6)');
+  gradient.addColorStop(1, 'rgba(75, 0, 130, 0.1)');
+  
+  const chartData = {
+    labels: labels,
+    datasets: [{
+      label: 'Mood Score',
+      data: dataPoints,
+      borderColor: 'rgba(255, 215, 0, 0.8)',
+      backgroundColor: gradient,
+      fill: true,
+      tension: 0.4,
+      pointRadius: 3,
+      pointHoverRadius: 5,
+      pointBackgroundColor: '#FFD700',
+      pointBorderColor: '#4B0082',
+      borderWidth: 2
+    }]
+  };
+  
+  // Create the chart
+  const moodChart = new Chart(ctx, {
+    type: 'line',
+    data: chartData,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          min: 0,
+          max: 100,
+          title: {
+            display: true,
+            text: 'Mood Score',
+            color: 'rgba(255, 255, 255, 0.7)'
+          },
+          ticks: {
+            color: 'rgba(255, 255, 255, 0.7)'
+          },
+          grid: {
+            color: 'rgba(255, 255, 255, 0.1)'
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Day of Month',
+            color: 'rgba(255, 255, 255, 0.7)'
+          },
+          ticks: {
+            color: 'rgba(255, 255, 255, 0.7)'
+          },
+          grid: {
+            color: 'rgba(255, 255, 255, 0.1)'
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          backgroundColor: 'rgba(18, 18, 24, 0.9)',
+          titleColor: '#FFD700',
+          bodyColor: '#FFFFFF',
+          borderColor: '#FFD700',
+          borderWidth: 1,
+          caretSize: 10,
+          cornerRadius: 8,
+          displayColors: false,
+          padding: 12,
+          callbacks: {
+            title: function(tooltipItems) {
+              return tooltipItems[0].label;
+            },
+            label: function(context) {
+              return `Mood Score: ${context.parsed.y}`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  // Create heat map
+  renderCalendar({{ calendar_data|tojson }});
+})();
+
+function renderCalendar(calendarData) {
+  const container = document.querySelector('.calendar-heatmap');
+  container.innerHTML = '';
+
+  // Create calendar header
+  const header = document.createElement('div');
+  header.className = 'calendar-header';
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  
+  days.forEach(day => {
+    const dayEl = document.createElement('div');
+    dayEl.className = 'calendar-day-header';
+    dayEl.textContent = day;
+    header.appendChild(dayEl);
+  });
+  
+  container.appendChild(header);
+
+  // Create calendar grid
+  const grid = document.createElement('div');
+  grid.className = 'calendar-grid';
+  
+  // Get first day of month
+  const firstDayObj = new Date(calendarData[0].date);
+  const firstDayOfWeek = firstDayObj.getDay();
+  
+  // Add empty cells for days before the 1st
+  for (let i = 0; i < firstDayOfWeek; i++) {
+    const emptyCell = document.createElement('div');
+    emptyCell.className = 'calendar-day empty';
+    grid.appendChild(emptyCell);
+  }
+  
+  // Add cells for each day in the month
+  calendarData.forEach(day => {
+    const cell = document.createElement('div');
+    cell.className = 'calendar-day';
+    
+    // Calculate mood color with space theme
+    let moodColor = 'rgba(40, 40, 60, 0.3)'; // default/no data
+    if (day.score !== null) {
+      // Convert -1 to 1 scale to cosmic color
+      const normalizedScore = (day.score + 1) / 2; // 0 to 1
+      
+      if (normalizedScore > 0.7) {
+        // High mood - purple to gold
+        const mix = (normalizedScore - 0.7) / 0.3; // 0 to 1 within this range
+        moodColor = `linear-gradient(45deg, rgba(138, 43, 226, ${0.7 + mix * 0.3}), rgba(255, 215, 0, ${mix * 0.7}))`;
+      } else if (normalizedScore > 0.4) {
+        // Medium mood - blue to purple
+        const mix = (normalizedScore - 0.4) / 0.3; // 0 to 1 within this range
+        moodColor = `linear-gradient(45deg, rgba(66, 165, 245, ${0.6 + mix * 0.2}), rgba(138, 43, 226, ${0.5 + mix * 0.2}))`;
+      } else {
+        // Low mood - red to blue
+        const mix = normalizedScore / 0.4; // 0 to 1 within this range
+        moodColor = `linear-gradient(45deg, rgba(255, 82, 82, ${0.6 + (1-mix) * 0.2}), rgba(66, 165, 245, ${0.4 + mix * 0.2}))`;
+      }
+    }
+    
+    cell.style.background = moodColor;
+    
+    // Day number
+    const dayNum = document.createElement('span');
+    dayNum.className = 'day-number';
+    dayNum.textContent = new Date(day.date).getDate();
+    cell.appendChild(dayNum);
+    
+    // Tooltip content
+    if (day.score !== null) {
+      cell.setAttribute('data-tooltip', `Mood: ${Math.round((day.score + 1) * 50)}/100`);
+      cell.classList.add('has-data');
+    }
+    
+    grid.appendChild(cell);
+  });
+  
+  container.appendChild(grid);
+  
+  // Initialize tooltips
+  initializeTooltips();
+}
+
+function initializeTooltips() {
+  document.querySelectorAll('.calendar-day.has-data').forEach(day => {
+    day.addEventListener('mouseenter', function(e) {
+      const tooltipText = this.getAttribute('data-tooltip');
+      
+      const tooltip = document.createElement('div');
+      tooltip.className = 'calendar-tooltip';
+      tooltip.textContent = tooltipText;
+      
+      document.body.appendChild(tooltip);
+      
+      const rect = this.getBoundingClientRect();
+      tooltip.style.left = `${rect.left + rect.width / 2 - tooltip.offsetWidth / 2}px`;
+      tooltip.style.top = `${rect.top - tooltip.offsetHeight - 5}px`;
+      
+      this.addEventListener('mouseleave', function() {
+        document.body.removeChild(tooltip);
+      }, { once: true });
+    });
+  });
+}
+
+function navigateMonth(direction) {
+  // Get current URL
+  const url = new URL(window.location.href);
+  
+  // Get the current month parameter or default to 0
+  let offset = parseInt(url.searchParams.get('month_offset') || 0);
+  
+  // Update the offset based on direction
+  if (direction === 'prev') {
+    offset -= 1;
+  } else if (direction === 'next') {
+    offset += 1;
+  }
+  
+  // Don't allow navigating too far into the future
+  if (offset > 0) {
+    offset = 0;
+  }
+  
+  // Update URL and navigate
+  url.searchParams.set('month_offset', offset);
+  window.location.href = url.toString();
+}
+</script>
+{% endif %}
+{% endblock %} 

@@ -1,0 +1,693 @@
+{% extends "base.html" %}
+
+{% block title %}Daily Mood Dashboard - Solace{% endblock %}
+
+{% block content %}
+<div class="container-fluid mood-dashboard-container fade-in py-4">
+  <div class="dashboard-header cosmic-header">
+    <h2 class="mb-0"><i class="fas fa-calendar-day me-2"></i> Daily Mood Insights</h2>
+  </div>
+
+  <div class="dashboard-tabs cosmic-tabs">
+    <a href="{{ url_for('mood.daily_mood_dashboard') }}" class="tab active">Daily</a>
+    <a href="{{ url_for('mood.weekly_mood_dashboard') }}" class="tab">Weekly</a>
+    <a href="{{ url_for('mood.monthly_mood_dashboard') }}" class="tab">Monthly</a>
+  </div>
+
+  <div class="date-navigator cosmic-navigator">
+    <button class="nav-button prev" onclick="navigateDate('prev')">&lt;</button>
+    <span class="current-date">{{ formatted_day_str }}</span>
+    <button class="nav-button next" onclick="navigateDate('next')">&gt;</button>
+  </div>
+
+  {% if no_data_message %}
+  <div class="no-data-message cosmic-empty-state text-center py-5">
+    <div class="cosmic-empty-icon mb-4">
+      <i class="fas fa-satellite fa-5x" style="color: var(--secondary-color);"></i>
+      <div class="cosmic-pulse"></div>
+    </div>
+    <h3>{{ no_data_message }}</h3>
+    <p class="text-muted mb-4">Begin your emotional journey by chatting with Solace</p>
+    <a href="{{ url_for('chat.new_chat') }}" class="btn btn-primary btn-lg">
+      <i class="fas fa-comment-dots me-2"></i> Start Chatting
+    </a>
+  </div>
+  {% else %}
+
+  <div class="card cosmic-card mood-fluctuation mb-4">
+    <h3><i class="fas fa-chart-line me-2"></i> Today's Mood Fluctuation</h3>
+    <div class="chart-container">
+      <canvas id="hourlyMoodChart"></canvas>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="card cosmic-card emotion-breakdown">
+      <h3><i class="fas fa-brain me-2"></i> Today's Emotion Breakdown</h3>
+      <div class="emotion-bars">
+        <div class="emotion">
+          <div class="emotion-label">Happiness</div>
+          <div class="progress-container">
+            <div class="progress-bar happiness" style="width: {{ emotion_breakdown.happiness }}%"></div>
+            <span class="percentage">{{ emotion_breakdown.happiness }}%</span>
+          </div>
+        </div>
+        <div class="emotion">
+          <div class="emotion-label">Anxiety</div>
+          <div class="progress-container">
+            <div class="progress-bar anxiety" style="width: {{ emotion_breakdown.anxiety }}%"></div>
+            <span class="percentage">{{ emotion_breakdown.anxiety }}%</span>
+          </div>
+        </div>
+        <div class="emotion">
+          <div class="emotion-label">Stress</div>
+          <div class="progress-container">
+            <div class="progress-bar stress" style="width: {{ emotion_breakdown.stress }}%"></div>
+            <span class="percentage">{{ emotion_breakdown.stress }}%</span>
+          </div>
+        </div>
+        <div class="emotion">
+          <div class="emotion-label">Calm</div>
+          <div class="progress-container">
+            <div class="progress-bar calm" style="width: {{ emotion_breakdown.calm }}%"></div>
+            <span class="percentage">{{ emotion_breakdown.calm }}%</span>
+          </div>
+        </div>
+        <div class="emotion">
+          <div class="emotion-label">Sadness</div>
+          <div class="progress-container">
+            <div class="progress-bar sadness" style="width: {{ emotion_breakdown.sadness }}%"></div>
+            <span class="percentage">{{ emotion_breakdown.sadness }}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card cosmic-card daily-summary">
+      <h3><i class="fas fa-lightbulb me-2"></i> Today's Summary</h3>
+      <div class="sentiment-score">
+        <h4>Overall Sentiment: {{ (daily_avg * 100)|round(0)|int }}/100</h4>
+        <div class="sentiment-meter">
+          <div class="meter-fill" style="width: {{ (daily_avg * 100)|round(0)|int }}%"></div>
+        </div>
+      </div>
+      <div class="key-insights">
+        <h4>Key Insights:</h4>
+        <ul>
+          {% for insight in insights %}
+          <li>{{ insight }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="recommendations">
+        <a href="#" class="btn btn-primary recommendations-btn" onclick="showRecommendations()">View Recommendations →</a>
+      </div>
+    </div>
+  </div>
+
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block additional_styles %}
+.mood-dashboard-container {
+  padding-bottom: 6rem;
+}
+
+/* Dashboard styling with space theme */
+.cosmic-header {
+  background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+  color: var(--text-color);
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.cosmic-tabs {
+  display: flex;
+  margin-bottom: 20px;
+  background: rgba(30, 30, 42, 0.7);
+  border-radius: 15px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.tab {
+  padding: 12px 30px;
+  text-align: center;
+  flex: 1;
+  text-decoration: none;
+  color: var(--text-color);
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.tab.active {
+  background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+  color: var(--secondary-color);
+}
+
+.tab:hover {
+  background-color: rgba(138, 43, 226, 0.3);
+}
+
+.cosmic-navigator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding: 10px 15px;
+  background: rgba(30, 30, 42, 0.7);
+  border-radius: 15px;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.current-date {
+  font-weight: 500;
+  font-size: 1.1rem;
+  color: var(--text-color);
+  padding: 5px 10px;
+}
+
+.nav-button {
+  background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+  color: var(--text-color);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.nav-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.cosmic-card {
+  background-color: rgba(30, 30, 42, 0.7);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  padding: 20px;
+  margin-bottom: 25px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.cosmic-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+}
+
+.cosmic-card h3 {
+  margin-top: 0;
+  color: var(--secondary-color);
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+}
+
+.chart-container {
+  height: 300px;
+  position: relative;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+}
+
+/* Emotion breakdown styling */
+.emotion {
+  margin-bottom: 15px;
+}
+
+.emotion-label {
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.progress-container {
+  height: 24px;
+  background: rgba(40, 40, 60, 0.5);
+  border-radius: 8px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 8px;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.progress-bar.happiness {
+  background: linear-gradient(45deg, #4CAF50, #8BC34A);
+}
+
+.progress-bar.anxiety {
+  background: linear-gradient(45deg, #FFA726, #FF9800);
+}
+
+.progress-bar.stress {
+  background: linear-gradient(45deg, #FF5252, #F44336);
+}
+
+.progress-bar.calm {
+  background: linear-gradient(45deg, #42A5F5, #2196F3);
+}
+
+.progress-bar.sadness {
+  background: linear-gradient(45deg, #7B1FA2, #9C27B0);
+}
+
+.percentage {
+  position: relative;
+  margin-left: 10px;
+  font-weight: 500;
+  z-index: 1;
+  color: var(--text-color);
+}
+
+/* Sentiment meter */
+.sentiment-score {
+  margin-bottom: 20px;
+}
+
+.sentiment-score h4 {
+  color: var(--text-color);
+}
+
+.sentiment-meter {
+  height: 30px;
+  background: rgba(40, 40, 60, 0.5);
+  border-radius: 15px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.meter-fill {
+  height: 100%;
+  background: linear-gradient(to right, #FF5252, #FFA726, var(--secondary-color), #4CAF50);
+}
+
+/* Key insights */
+.key-insights h4 {
+  color: var(--text-color);
+}
+
+.key-insights ul {
+  padding-left: 20px;
+}
+
+.key-insights li {
+  margin-bottom: 8px;
+  color: var(--text-color);
+}
+
+/* Recommendations button */
+.recommendations-btn {
+  display: inline-block;
+  padding: 10px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  margin-top: 15px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+/* Cosmic empty state */
+.cosmic-empty-icon {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cosmic-pulse {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: rgba(138, 43, 226, 0.1);
+  z-index: -1;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(138, 43, 226, 0.4);
+  }
+  
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 30px rgba(138, 43, 226, 0);
+  }
+  
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(138, 43, 226, 0);
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Recommendations modal styling */
+.recommendations-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+}
+
+.recommendations-modal-content {
+  background-color: rgba(30, 30, 42, 0.95);
+  padding: 30px;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  width: 80%;
+  max-width: 600px;
+  position: relative;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.5);
+}
+
+.close-button {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: color 0.3s ease;
+}
+
+.close-button:hover {
+  color: var(--secondary-color);
+}
+
+.recommendations-modal-content h2 {
+  margin-top: 0;
+  color: var(--secondary-color);
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+  padding-bottom: 10px;
+}
+
+.recommendations-modal-content ul {
+  padding-left: 20px;
+}
+
+.recommendations-modal-content li {
+  margin-bottom: 12px;
+  color: var(--text-color);
+}
+
+.disclaimer {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 20px;
+  font-style: italic;
+}
+{% endblock %}
+
+{% block scripts %}
+{% if not no_data_message %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+(function(){
+  const ctx = document.getElementById('hourlyMoodChart').getContext('2d');
+  const hourlyData = {{ hourly_data|tojson }};
+  
+  // Transform the data for display (scale from -1,1 to 0,100)
+  const labels = hourlyData.map(d => d.hour + ":00");
+  const dataPoints = hourlyData.map(d => (d.avg_score + 1) * 50); // Convert -1,1 to 0,100 scale
+  
+  // Add event annotations
+  const events = {{ events|tojson }};
+  
+  // Create gradient for the line
+  const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+  gradient.addColorStop(0, 'rgba(138, 43, 226, 0.6)');
+  gradient.addColorStop(1, 'rgba(75, 0, 130, 0.1)');
+  
+  const chartData = {
+    labels: labels,
+    datasets: [{
+      label: 'Mood Score',
+      data: dataPoints,
+      borderColor: 'rgba(255, 215, 0, 0.8)',
+      backgroundColor: gradient,
+      fill: true,
+      tension: 0.4,
+      pointRadius: 4,
+      pointHoverRadius: 6,
+      pointBackgroundColor: '#FFD700',
+      pointBorderColor: '#4B0082',
+      borderWidth: 2
+    }]
+  };
+  
+  // Create the chart
+  const moodChart = new Chart(ctx, {
+    type: 'line',
+    data: chartData,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          min: 0,
+          max: 100,
+          title: {
+            display: true,
+            text: 'Mood Score',
+            color: 'rgba(255, 255, 255, 0.7)'
+          },
+          ticks: {
+            color: 'rgba(255, 255, 255, 0.7)'
+          },
+          grid: {
+            color: 'rgba(255, 255, 255, 0.1)'
+          }
+        },
+        x: {
+          title: {
+            display: true,
+            text: 'Time of Day',
+            color: 'rgba(255, 255, 255, 0.7)'
+          },
+          ticks: {
+            color: 'rgba(255, 255, 255, 0.7)'
+          },
+          grid: {
+            color: 'rgba(255, 255, 255, 0.1)'
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          backgroundColor: 'rgba(18, 18, 24, 0.9)',
+          titleColor: '#FFD700',
+          bodyColor: '#FFFFFF',
+          borderColor: '#FFD700',
+          borderWidth: 1,
+          caretSize: 10,
+          cornerRadius: 8,
+          displayColors: false,
+          padding: 12,
+          callbacks: {
+            title: function(tooltipItems) {
+              return tooltipItems[0].label;
+            },
+            label: function(context) {
+              return `Mood Score: ${context.parsed.y}`;
+            }
+          }
+        }
+      }
+    }
+  });
+  
+  // Add custom event annotations
+  const annotateEvents = () => {
+    events.forEach(event => {
+      const hourIndex = hourlyData.findIndex(d => d.hour === event.hour);
+      if (hourIndex >= 0) {
+        // Add a custom point for the event
+        const canvas = ctx.canvas;
+        const yAxis = moodChart.scales.y;
+        const xAxis = moodChart.scales.x;
+        const x = xAxis.getPixelForValue(labels[hourIndex]);
+        const y = yAxis.getPixelForValue((event.sentiment + 1) * 50);
+        
+        // Draw event point after chart render
+        ctx.fillStyle = event.color || '#FFD700';
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.strokeStyle = '#4B0082';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+    });
+  };
+  
+  moodChart.options.animation.onComplete = () => {
+    annotateEvents();
+  };
+})();
+
+// Recommendations modal functionality
+function showRecommendations() {
+  // Get the dominant emotion from the breakdown
+  const emotions = {
+    "happiness": {{ emotion_breakdown.happiness }},
+    "anxiety": {{ emotion_breakdown.anxiety }},
+    "stress": {{ emotion_breakdown.stress }},
+    "calm": {{ emotion_breakdown.calm }},
+    "sadness": {{ emotion_breakdown.sadness }}
+  };
+  
+  // Find the dominant emotion
+  let dominantEmotion = "neutral";
+  let maxValue = 0;
+  
+  for (const [emotion, value] of Object.entries(emotions)) {
+    if (value > maxValue) {
+      maxValue = value;
+      dominantEmotion = emotion;
+    }
+  }
+  
+  // Generate recommendations based on dominant emotion
+  let recommendations = [];
+  
+  switch(dominantEmotion) {
+    case "anxiety":
+      recommendations = [
+        "Try a 5-minute deep breathing exercise",
+        "Take a short walk outside",
+        "Listen to calming music",
+        "Write down your thoughts and concerns",
+        "Limit caffeine intake"
+      ];
+      break;
+    case "stress":
+      recommendations = [
+        "Practice progressive muscle relaxation",
+        "Try a guided meditation session",
+        "Take regular breaks during work",
+        "Connect with a friend or family member",
+        "Organize your tasks by priority"
+      ];
+      break;
+    case "sadness":
+      recommendations = [
+        "Reach out to a supportive friend",
+        "Engage in a creative activity you enjoy",
+        "Get some sunlight and fresh air",
+        "Practice self-compassion exercises",
+        "Consider speaking with a mental health professional"
+      ];
+      break;
+    default:
+      recommendations = [
+        "Continue your positive habits",
+        "Take time to appreciate your accomplishments",
+        "Share your positive energy with others",
+        "Try something new that excites you",
+        "Record your positive experiences in a journal"
+      ];
+  }
+  
+  // Create and show a modal with recommendations
+  const modal = document.createElement('div');
+  modal.className = 'recommendations-modal';
+  
+  let modalContent = `
+    <div class="recommendations-modal-content">
+      <span class="close-button" onclick="closeModal()">&times;</span>
+      <h2>Recommendations for ${dominantEmotion.charAt(0).toUpperCase() + dominantEmotion.slice(1)}</h2>
+      <ul>
+  `;
+  
+  recommendations.forEach(rec => {
+    modalContent += `<li>${rec}</li>`;
+  });
+  
+  modalContent += `
+      </ul>
+      <p class="disclaimer">These are general suggestions. For persistent emotional concerns, please consult a healthcare professional.</p>
+    </div>
+  `;
+  
+  modal.innerHTML = modalContent;
+  document.body.appendChild(modal);
+  
+  // Add to global scope to access from closeModal
+  window.currentModal = modal;
+  
+  // Show the modal
+  setTimeout(() => {
+    modal.style.opacity = '1';
+  }, 10);
+}
+
+function closeModal() {
+  if (window.currentModal) {
+    window.currentModal.style.opacity = '0';
+    setTimeout(() => {
+      document.body.removeChild(window.currentModal);
+      window.currentModal = null;
+    }, 300);
+  }
+}
+</script>
+{% endif %}
+
+<script>
+function navigateDate(direction) {
+  const currentDate = new Date('{{ day_str }}');
+  let newDate;
+  
+  if (direction === 'prev') {
+    newDate = new Date(currentDate.setDate(currentDate.getDate() - 1));
+  } else {
+    newDate = new Date(currentDate.setDate(currentDate.getDate() + 1));
+  }
+  
+  const year = newDate.getFullYear();
+  const month = String(newDate.getMonth() + 1).padStart(2, '0');
+  const day = String(newDate.getDate()).padStart(2, '0');
+  
+  window.location.href = `{{ url_for('mood.daily_mood_dashboard') }}?date=${year}-${month}-${day}`;
+}
+</script>
+{% endblock %}

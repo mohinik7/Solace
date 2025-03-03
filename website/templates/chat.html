@@ -1,57 +1,234 @@
-{% extends "base.html" %}
-{% block title %}Chat Session{% endblock %}
-{% block content %}
-<h1>Chat Session</h1>
-<div
-  id="chat-window"
-  style="border:1px solid #ccc; height:300px; overflow-y:scroll; padding:10px;"
->
-  {% for msg in messages %}
-  <div><strong>{{ msg.role|capitalize }}:</strong> {{ msg.message }}</div>
-  {% endfor %}
-</div>
-<br />
-<form id="chat-form" data-session-id="{{ session_id }}">
-  <div class="form-group">
-    <input
-      type="text"
-      class="form-control"
-      id="user-input"
-      placeholder="Type your message here"
-    />
+{% extends "base.html" %} {% block title %}Chat with Solace{% endblock %} {%
+block content %}
+<div class="chat-container-wrapper">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="chat-card">
+        <div
+          class="card-header d-flex justify-content-between align-items-center"
+        >
+          <h3 class="mb-0">
+            <i class="fas fa-satellite-dish me-2"></i>
+            Conversation with Solace
+          </h3>
+          <a
+            href="{{ url_for('chat.chat_sessions') }}"
+            class="btn btn-secondary btn-sm"
+          >
+            <i class="fas fa-arrow-left me-1"></i> Back to Sessions
+          </a>
+        </div>
+
+        <div class="messages-container">
+          <div id="chat-window" class="chat-messages">
+            {% for msg in messages %}
+            <div
+              class="message-wrapper {% if msg.role == 'user' %}user-message{% else %}bot-message{% endif %}"
+            >
+              <div class="message-bubble">
+                {% if msg.role == 'user' %}
+                <div class="message-icon">
+                  <i class="fas fa-user-astronaut"></i>
+                </div>
+                {% else %}
+                <div class="message-icon">
+                  <i class="fas fa-robot"></i>
+                </div>
+                {% endif %}
+                <div class="message-content">{{ msg.message }}</div>
+              </div>
+              <div class="message-time">
+                {{ msg.timestamp|format_datetime if msg.timestamp else '' }}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="input-area">
+          <form id="chat-form" data-session-id="{{ session_id }}">
+            <div class="input-group">
+              <input
+                type="text"
+                class="form-control"
+                id="user-input"
+                placeholder="Type your message..."
+                autocomplete="off"
+              />
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-paper-plane"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
-  <button type="submit" class="btn btn-primary">Send</button>
-</form>
-{% endblock %}
-{% block javascript %}
+</div>
+{% endblock %} {% block additional_styles %} /* Hide default footer in chat page
+*/ footer { display: none; } .chat-container-wrapper { position: fixed; top:
+80px; /* Navbar height + some spacing */ bottom: 0; left: 0; right: 0; padding:
+1rem; overflow: hidden; } .row { height: 100%; margin: 0; } .col-lg-10 { height:
+100%; } .chat-card { height: 100%; display: flex; flex-direction: column;
+background-color: rgba(10, 10, 20, 0.6); border: 1px solid rgba(255, 215, 0,
+0.2); border-radius: 15px; margin-bottom: 0; } .messages-container { flex: 1;
+overflow: hidden; position: relative; } .chat-messages { height: 100%;
+overflow-y: auto; padding: 1.5rem; scroll-behavior: smooth; } .message-wrapper {
+margin-bottom: 1.5rem; max-width: 75%; } .user-message { margin-left: auto; }
+.bot-message { margin-right: auto; } .message-bubble { display: flex; padding:
+0.5rem; border-radius: 1rem; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2); }
+.user-message .message-bubble { background: linear-gradient(45deg,
+var(--primary-color), var(--accent-color)); border: 1px solid
+var(--secondary-color); } .bot-message .message-bubble { background: rgba(50,
+50, 70, 0.8); border: 1px solid rgba(255, 255, 255, 0.2); } .message-icon {
+width: 40px; height: 40px; border-radius: 50%; background: rgba(0, 0, 0, 0.3);
+display: flex; justify-content: center; align-items: center; margin-right: 10px;
+flex-shrink: 0; } .input-area { padding: 1rem; background-color: rgba(30, 30,
+42, 0.7); border-top: 1px solid rgba(255, 215, 0, 0.2); flex-shrink: 0;
+position: relative; z-index: 10; } .input-area .form-control { background-color:
+rgba(45, 45, 60, 0.7); border: 1px solid rgba(255, 255, 255, 0.2); color:
+var(--text-color); } .input-area .form-control:focus { background-color:
+rgba(55, 55, 70, 0.7); border-color: var(--secondary-color); box-shadow: 0 0
+10px rgba(255, 215, 0, 0.3); } /* Custom back button for better visibility
+within chat interface */ .btn-secondary { background-color: rgba(50, 50, 70,
+0.8); border: 1px solid var(--secondary-color); color: var(--secondary-color);
+font-weight: 500; } .btn-secondary:hover { background-color: rgba(70, 70, 90,
+0.9); border-color: var(--secondary-color); color: var(--secondary-color); } {%
+endblock %} {% block scripts %}
 <script>
-  document.getElementById('chat-form').addEventListener('submit', async function(e){
+  // Scroll to the bottom of the chat window on load
+  document.addEventListener("DOMContentLoaded", function () {
+    const chatWindow = document.getElementById("chat-window");
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  });
+
+  document
+    .getElementById("chat-form")
+    .addEventListener("submit", async function (e) {
       e.preventDefault();
-      const sessionId = this.getAttribute('data-session-id');
-      const inputElem = document.getElementById('user-input');
+      const sessionId = this.getAttribute("data-session-id");
+      const inputElem = document.getElementById("user-input");
       const userInput = inputElem.value;
       if (!userInput.trim()) return;
-      
-      const chatWindow = document.getElementById('chat-window');
-      // Append user's message
-      const userMsgDiv = document.createElement('div');
-      userMsgDiv.innerHTML = '<strong>You:</strong> ' + userInput;
+
+      const chatWindow = document.getElementById("chat-window");
+
+      // Create timestamp
+      const now = new Date();
+      const hours = now.getHours().toString().padStart(2, "0");
+      const minutes = now.getMinutes().toString().padStart(2, "0");
+      const timeString = `${hours}:${minutes}`;
+
+      // Append user's message with space theme
+      const userMsgDiv = document.createElement("div");
+      userMsgDiv.className = "message-wrapper user-message";
+      userMsgDiv.innerHTML = `
+            <div class="message-bubble">
+                <div class="message-icon">
+                    <i class="fas fa-user-astronaut"></i>
+                </div>
+                <div class="message-content">${userInput}</div>
+            </div>
+            <div class="message-time">${timeString}</div>
+        `;
       chatWindow.appendChild(userMsgDiv);
-      inputElem.value = '';
-  
-      // Send message to the Flask endpoint
-      const response = await fetch('/chat-response/' + sessionId, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({user_input: userInput})
-      });
-  
-      const data = await response.json();
-      // Append chatbot's response (which may include HTML links)
-      const botMsgDiv = document.createElement('div');
-      botMsgDiv.innerHTML = '<strong>Chatbot:</strong> ' + data.response;
-      chatWindow.appendChild(botMsgDiv);
+      inputElem.value = "";
+
+      // Scroll to bottom
       chatWindow.scrollTop = chatWindow.scrollHeight;
-  });
-  </script>  
+
+      // Show loading indicator
+      const loadingDiv = document.createElement("div");
+      loadingDiv.className = "message-wrapper bot-message";
+      loadingDiv.innerHTML = `
+            <div class="message-bubble">
+                <div class="message-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    <div class="typing-indicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+        `;
+      chatWindow.appendChild(loadingDiv);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+
+      // Send message to the Flask endpoint
+      const response = await fetch("/chat-response/" + sessionId, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_input: userInput }),
+      });
+
+      // Remove loading indicator
+      chatWindow.removeChild(loadingDiv);
+
+      const data = await response.json();
+
+      // Append chatbot's response
+      const botMsgDiv = document.createElement("div");
+      botMsgDiv.className = "message-wrapper bot-message";
+      botMsgDiv.innerHTML = `
+            <div class="message-bubble">
+                <div class="message-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-content">${data.response}</div>
+            </div>
+            <div class="message-time">${timeString}</div>
+        `;
+      chatWindow.appendChild(botMsgDiv);
+
+      // Scroll to bottom again
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    });
+</script>
+
+<style>
+  /* Typing indicator animation */
+  .typing-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 20px;
+  }
+
+  .typing-indicator span {
+    height: 8px;
+    width: 8px;
+    margin: 0 2px;
+    background-color: var(--secondary-color);
+    border-radius: 50%;
+    display: inline-block;
+    animation: typing 1.4s infinite ease-in-out both;
+  }
+
+  .typing-indicator span:nth-child(1) {
+    animation-delay: 0s;
+  }
+
+  .typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  @keyframes typing {
+    0% {
+      transform: scale(0);
+    }
+    50% {
+      transform: scale(1);
+    }
+    100% {
+      transform: scale(0);
+    }
+  }
+</style>
 {% endblock %}

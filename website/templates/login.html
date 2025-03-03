@@ -1,30 +1,101 @@
-{% extends "base.html" %}
-{% block title %}Login{% endblock %}
-{% block content %}
-<h2>Login</h2>
-<form method="POST" class="mt-4">
-  <div class="form-group">
-    <label for="email">Email Address</label>
-    <input
-      type="email"
-      class="form-control"
-      id="email"
-      name="email"
-      placeholder="Enter email"
-      required
-    />
+{% extends "base.html" %} {% block title %}Login - Solace{% endblock %} {% block
+content %}
+<div class="container login-container fade-in">
+  <div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-5">
+      <div class="card">
+        <div class="card-header py-3">
+          <h3 class="text-center mb-0">Welcome Back</h3>
+        </div>
+        <div class="card-body">
+          <div class="text-center mb-4">
+            <div class="avatar-icon mb-3">
+              <i
+                class="fas fa-user-astronaut fa-4x"
+                style="color: var(--secondary-color)"
+              ></i>
+            </div>
+            <p class="lead">
+              Begin your journey through the cosmos of emotions
+            </p>
+          </div>
+
+          <form method="POST">
+            <div class="mb-3">
+              <label for="email" class="form-label">Email Address</label>
+              <div class="input-group">
+                <span class="input-group-text bg-transparent border-end-0">
+                  <i
+                    class="fas fa-envelope"
+                    style="color: var(--secondary-color)"
+                  ></i>
+                </span>
+                <input
+                  type="email"
+                  class="form-control border-start-0"
+                  id="email"
+                  name="email"
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label for="password" class="form-label">Password</label>
+              <div class="input-group">
+                <span class="input-group-text bg-transparent border-end-0">
+                  <i
+                    class="fas fa-lock"
+                    style="color: var(--secondary-color)"
+                  ></i>
+                </span>
+                <input
+                  type="password"
+                  class="form-control border-start-0"
+                  id="password"
+                  name="password"
+                  placeholder="Enter your password"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="d-grid gap-2 mb-4">
+              <button type="submit" class="btn btn-primary py-2">Login</button>
+            </div>
+
+            <div class="text-center">
+              <p>
+                Don't have an account?
+                <a
+                  href="{{ url_for('auth.sign_up') }}"
+                  class="text-decoration-none"
+                  style="color: var(--secondary-color)"
+                  >Sign up here</a
+                >
+              </p>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="text-center mt-4 back-link">
+        <a
+          href="{{ url_for('landing') }}"
+          class="text-decoration-none"
+          style="color: var(--text-secondary)"
+        >
+          <i class="fas fa-arrow-left me-2"></i> Back to Home
+        </a>
+      </div>
+    </div>
   </div>
-  <div class="form-group">
-    <label for="password">Password</label>
-    <input
-      type="password"
-      class="form-control"
-      id="password"
-      name="password"
-      placeholder="Enter password"
-      required
-    />
-  </div>
-  <button type="submit" class="btn btn-primary mt-2">Login</button>
-</form>
-{% endblock %}
+</div>
+{% endblock %} {% block additional_styles %} .login-container { padding-bottom:
+6rem; } .avatar-icon { width: 80px; height: 80px; margin: 0 auto; display: flex;
+align-items: center; justify-content: center; background: rgba(75, 0, 130, 0.3);
+border-radius: 50%; border: 2px solid var(--secondary-color); box-shadow: 0 0
+20px rgba(255, 215, 0, 0.4); } .input-group-text { color: var(--text-color); }
+.card { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); } .back-link {
+margin-bottom: 20px; } {% endblock %}

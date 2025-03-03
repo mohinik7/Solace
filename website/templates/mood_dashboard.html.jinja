@@ -1,54 +1,411 @@
 {% extends "base.html" %}
-{% block title %}Mood Dashboard{% endblock %}
+
+{% block title %}Mood Dashboard - Solace{% endblock %}
+
 {% block content %}
-  <h2>Mood Dashboard</h2>
-  {% if timestamps and scores and timestamps|length > 0 and scores|length > 0 %}
-    <canvas id="moodChart" width="400" height="200"></canvas>
-  {% else %}
-    <p>No mood data available yet. Start chatting to record mood entries!</p>
-  {% endif %}
+<div class="container-fluid mood-dashboard-container fade-in py-4">
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h2 class="mb-0">
+                            <i class="fas fa-chart-line me-2" style="color: var(--secondary-color);"></i>
+                            Emotional Journey
+                        </h2>
+                        <div class="btn-group">
+                            <a href="{{ url_for('mood.daily_mood_dashboard') }}" class="btn btn-primary">
+                                <i class="fas fa-calendar-day me-2"></i> Daily
+                            </a>
+                            <a href="{{ url_for('mood.weekly_mood_dashboard') }}" class="btn btn-primary">
+                                <i class="fas fa-calendar-week me-2"></i> Weekly
+                            </a>
+                            <a href="{{ url_for('mood.monthly_mood_dashboard') }}" class="btn btn-primary">
+                                <i class="fas fa-calendar-alt me-2"></i> Monthly
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    {% if not timestamps or not scores %}
+                    <div class="text-center py-5">
+                        <div class="cosmic-empty-state mb-4">
+                            <i class="fas fa-satellite fa-5x" style="color: var(--secondary-color);"></i>
+                            <div class="cosmic-pulse"></div>
+                        </div>
+                        <h3>Your Emotional Cosmos Is Empty</h3>
+                        <p class="text-muted mb-4">Start a conversation with Solace to begin mapping your emotional journey through the stars.</p>
+                        <a href="{{ url_for('chat.new_chat') }}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-comment-dots me-2"></i> Start Chatting
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="row">
+                        <div class="col-lg-8 mb-4">
+                            <div class="card cosmic-card h-100">
+                                <div class="card-body">
+                                    <h4 class="card-title mb-3">
+                                        <i class="fas fa-star me-2"></i> Recent Mood Trajectory
+                                    </h4>
+                                    <div class="chart-container position-relative" style="height: 300px;">
+                                        <canvas id="moodChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-4 mb-4">
+                            <div class="card cosmic-card h-100">
+                                <div class="card-body">
+                                    <h4 class="card-title mb-3">
+                                        <i class="fas fa-brain me-2"></i> Emotional Spectrum
+                                    </h4>
+                                    <div class="emotion-breakdown">
+                                        {% set default_emotions = {
+                                            "happiness": 35,
+                                            "sadness": 20,
+                                            "anger": 15, 
+                                            "fear": 15,
+                                            "surprise": 15
+                                        } %}
+                                        {% set emotions = emotion_breakdown|default(default_emotions) %}
+                                        {% for emotion, percentage in emotions.items() %}
+                                        <div class="emotion-item mb-3">
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <span class="emotion-label">{{ emotion|capitalize }}</span>
+                                                <span class="emotion-value">{{ percentage }}%</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar emotion-{{ emotion|lower }}" role="progressbar" 
+                                                    style="width: {{ percentage }}%" 
+                                                    aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <div class="card cosmic-card h-100">
+                                <div class="card-body">
+                                    <h4 class="card-title mb-3">
+                                        <i class="fas fa-lightbulb me-2"></i> Insights
+                                    </h4>
+                                    <div class="insight-container">
+                                        {% if insights|default(false) %}
+                                            {% for insight in insights %}
+                                            <div class="insight-item mb-3">
+                                                <div class="insight-icon">
+                                                    <i class="fas fa-star"></i>
+                                                </div>
+                                                <div class="insight-text">{{ insight }}</div>
+                                            </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <p class="text-muted">Continue chatting to receive personalized insights about your emotional patterns.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <div class="card cosmic-card h-100">
+                                <div class="card-body">
+                                    <h4 class="card-title mb-3">
+                                        <i class="fas fa-comment-dots me-2"></i> Journal Highlights
+                                    </h4>
+                                    <div class="journal-container">
+                                        {% if journal_highlights|default(false) %}
+                                            {% for highlight in journal_highlights %}
+                                            <div class="journal-item mb-3">
+                                                <div class="journal-quote">"{{ highlight.text }}"</div>
+                                                <div class="journal-meta">
+                                                    <span class="journal-date">{{ highlight.timestamp|format_datetime }}</span>
+                                                    <span class="journal-sentiment 
+                                                        {% if highlight.sentiment > 0.2 %}sentiment-positive
+                                                        {% elif highlight.sentiment < -0.2 %}sentiment-negative
+                                                        {% else %}sentiment-neutral{% endif %}"
+                                                    >
+                                                        {% if highlight.sentiment > 0.2 %}
+                                                            <i class="fas fa-smile"></i> Positive
+                                                        {% elif highlight.sentiment < -0.2 %}
+                                                            <i class="fas fa-frown"></i> Negative
+                                                        {% else %}
+                                                            <i class="fas fa-meh"></i> Neutral
+                                                        {% endif %}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <p class="text-muted">Your journal highlights will appear here as you continue to chat.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
-{% block javascript %}
-  {% if timestamps and scores and timestamps|length > 0 and scores|length > 0 %}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-      (function() {
-        const ctx = document.getElementById('moodChart').getContext('2d');
-        const timestamps = {{ timestamps | tojson }};
-        const scores = {{ scores | tojson }};
-        
-        const moodChart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: timestamps,
+
+{% block additional_styles %}
+.mood-dashboard-container {
+    padding-bottom: 6rem;
+}
+
+.cosmic-empty-state {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cosmic-pulse {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: rgba(138, 43, 226, 0.1);
+    z-index: -1;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(138, 43, 226, 0.4);
+    }
+    
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 30px rgba(138, 43, 226, 0);
+    }
+    
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(138, 43, 226, 0);
+    }
+}
+
+.emotion-breakdown {
+    padding: 0.5rem;
+}
+
+.emotion-item {
+    margin-bottom: 1rem;
+}
+
+.emotion-label {
+    font-weight: 500;
+}
+
+.emotion-value {
+    color: var(--secondary-color);
+    font-weight: 600;
+}
+
+.progress {
+    background: rgba(50, 50, 65, 0.5);
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+}
+
+.emotion-happiness {
+    background: linear-gradient(45deg, #4CAF50, #8BC34A);
+}
+
+.emotion-sadness {
+    background: linear-gradient(45deg, #2196F3, #03A9F4);
+}
+
+.emotion-anger {
+    background: linear-gradient(45deg, #F44336, #FF5722);
+}
+
+.emotion-fear, .emotion-anxiety {
+    background: linear-gradient(45deg, #9C27B0, #673AB7);
+}
+
+.emotion-surprise {
+    background: linear-gradient(45deg, #FF9800, #FFC107);
+}
+
+.card {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+}
+
+.cosmic-card {
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    background-color: rgba(30, 30, 42, 0.7);
+}
+
+.insight-container, .journal-container {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 0.5rem;
+}
+
+.insight-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 0.75rem;
+    background: rgba(40, 40, 60, 0.4);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+}
+
+.insight-icon {
+    margin-right: 0.75rem;
+    color: var(--secondary-color);
+}
+
+.journal-item {
+    padding: 0.75rem;
+    background: rgba(40, 40, 60, 0.4);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+}
+
+.journal-quote {
+    font-style: italic;
+    margin-bottom: 0.5rem;
+}
+
+.journal-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.sentiment-positive {
+    color: #4CAF50;
+}
+
+.sentiment-negative {
+    color: #F44336;
+}
+
+.sentiment-neutral {
+    color: #FFC107;
+}
+
+.chart-container {
+    position: relative;
+    height: 100%;
+    width: 100%;
+}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    {% if timestamps and scores %}
+    // Set up Chart.js with a space theme
+    const ctx = document.getElementById('moodChart').getContext('2d');
+    
+    // Create gradient for the line
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(138, 43, 226, 0.8)');
+    gradient.addColorStop(1, 'rgba(75, 0, 130, 0.2)');
+    
+    const moodChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ timestamps|tojson }},
             datasets: [{
-              label: 'Sentiment Score',
-              data: scores,
-              borderColor: 'rgba(241,196,15,1)',
-              backgroundColor: 'rgba(241,196,15,0.2)',
-              fill: true,
+                label: 'Mood Score',
+                data: {{ scores|tojson }},
+                backgroundColor: gradient,
+                borderColor: '#FFD700',
+                borderWidth: 2,
+                pointBackgroundColor: '#FFD700',
+                pointBorderColor: '#4B0082',
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                tension: 0.3,
+                fill: true
             }]
-          },
-          options: {
-            scales: {
-              x: {
-                title: {
-                  display: true,
-                  text: 'Time'
-                }
-              },
-              y: {
-                title: {
-                  display: true,
-                  text: 'Sentiment Score'
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
                 },
-                suggestedMin: -1,
-                suggestedMax: 1
-              }
+                tooltip: {
+                    backgroundColor: 'rgba(18, 18, 24, 0.8)',
+                    titleColor: '#FFD700',
+                    bodyColor: '#FFFFFF',
+                    borderColor: '#FFD700',
+                    borderWidth: 1,
+                    caretSize: 10,
+                    cornerRadius: 6,
+                    displayColors: false,
+                    padding: 12
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)',
+                        display: false
+                    },
+                    ticks: {
+                        color: '#d1d1d1'
+                    }
+                },
+                y: {
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)',
+                        drawBorder: false
+                    },
+                    ticks: {
+                        color: '#d1d1d1',
+                        callback: function(value) {
+                            if (value === 1) return 'Positive';
+                            if (value === 0) return 'Neutral';
+                            if (value === -1) return 'Negative';
+                            return '';
+                        }
+                    },
+                    min: -1,
+                    max: 1,
+                    suggestedMin: -1,
+                    suggestedMax: 1
+                }
             }
-          }
-        });
-      })();
-    </script>
-  {% endif %}
+        }
+    });
+    {% endif %}
+});
+</script>
 {% endblock %}

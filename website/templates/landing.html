@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solace - Your Emotional Companion</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/landing.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <style>
+      :root {
+        --primary-color: #8a2be2;
+        --secondary-color: #ffd700;
+        --accent-color: #4b0082;
+        --text-color: #ffffff;
+        --dark-bg: #121212;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: var(--text-color);
+        background-color: #050510;
+        overflow-x: hidden;
+        position: relative;
+        min-height: 100vh;
+      }
+
+      .video-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -2;
+        overflow: hidden;
+        opacity: 1;
+        display: block !important;
+        visibility: visible !important;
+      }
+
+      .video-container video {
+        min-width: 100%;
+        min-height: 100%;
+        width: auto;
+        height: auto;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        object-fit: cover;
+        z-index: -2;
+        visibility: visible !important;
+        opacity: 1 !important;
+      }
+
+      .video-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: -1;
+      }
+
+      .stars {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        background: url("https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?ixlib=rb-1.2.1&auto=format&fit=crop&w=1951&q=80")
+          no-repeat center center;
+        background-size: cover;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+        position: relative;
+        z-index: 1;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+      }
+
+      .logo {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--secondary-color);
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+      }
+
+      .logo span {
+        color: var(--text-color);
+      }
+
+      nav ul {
+        display: flex;
+        list-style: none;
+      }
+
+      nav ul li {
+        margin-left: 2rem;
+      }
+
+      nav ul li a {
+        color: var(--text-color);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+      }
+
+      nav ul li a:hover {
+        color: var(--secondary-color);
+      }
+
+      .hero {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        min-height: 80vh;
+        padding: 2rem 0;
+      }
+
+      .hero h1 {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(to right, var(--secondary-color), #ffa500);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+      }
+
+      .hero p {
+        font-size: 1.5rem;
+        max-width: 800px;
+        margin-bottom: 2.5rem;
+        line-height: 1.6;
+      }
+
+      .btn {
+        display: inline-block;
+        background: linear-gradient(
+          45deg,
+          var(--primary-color),
+          var(--accent-color)
+        );
+        color: var(--text-color);
+        padding: 1rem 2.5rem;
+        border-radius: 50px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 2px solid var(--secondary-color);
+        box-shadow: 0 0 15px rgba(138, 43, 226, 0.5);
+      }
+
+      .btn:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0 25px rgba(138, 43, 226, 0.8);
+      }
+
+      .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin: 4rem 0;
+      }
+
+      .feature-card {
+        background: rgba(18, 18, 18, 0.8);
+        border-radius: 15px;
+        padding: 2rem;
+        text-align: center;
+        transition: transform 0.3s ease;
+        border: 1px solid rgba(255, 215, 0, 0.3);
+        box-shadow: 0 0 20px rgba(75, 0, 130, 0.2);
+      }
+
+      .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 0 30px rgba(75, 0, 130, 0.4);
+      }
+
+      .feature-icon {
+        font-size: 3rem;
+        color: var(--secondary-color);
+        margin-bottom: 1.5rem;
+      }
+
+      .feature-card h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: var(--secondary-color);
+      }
+
+      .feature-card p {
+        font-size: 1rem;
+        line-height: 1.6;
+      }
+
+      footer {
+        text-align: center;
+        padding: 2rem 0;
+        margin-top: 4rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .admin-link {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: rgba(18, 18, 18, 0.8);
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        text-decoration: none;
+        color: var(--text-color);
+        font-size: 0.9rem;
+        transition: background 0.3s ease;
+      }
+
+      .admin-link:hover {
+        background: rgba(75, 0, 130, 0.8);
+      }
+
+      @media (max-width: 768px) {
+        .hero h1 {
+          font-size: 3rem;
+        }
+
+        .hero p {
+          font-size: 1.2rem;
+        }
+
+        nav ul {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <style>
+      /* Force the video container to be visible */
+      .video-container {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+      }
+
+      .video-container video {
+        visibility: visible !important;
+        opacity: 1 !important;
+      }
+    </style>
+
+    {% if not current_video %}
+    <div class="stars"></div>
+    {% endif %} {% if current_video %}
+    <div class="video-container">
+      <video autoplay loop muted playsinline>
+        <source
+          src="{{ url_for('static', filename='videos/' + current_video) }}"
+          type="video/mp4"
+        />
+        Your browser does not support the video tag.
+      </video>
+      <div class="video-overlay"></div>
+    </div>
+    <script>
+      // Debug info
+      console.log("Video should be playing: {{ current_video }}");
+      console.log(
+        "Video URL: {{ url_for('static', filename='videos/' + current_video) }}"
+      );
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const video = document.querySelector(".video-container video");
+        if (video) {
+          console.log("Video element found");
+          video
+            .play()
+            .then(() => {
+              console.log("Video playing");
+              // Check if video has loaded correctly
+              video.addEventListener("loadeddata", () => {
+                console.log("Video data loaded successfully");
+                console.log(
+                  "Video dimensions:",
+                  video.videoWidth,
+                  "x",
+                  video.videoHeight
+                );
+              });
+
+              // Check for video errors
+              video.addEventListener("error", (e) => {
+                console.error("Video error:", video.error);
+              });
+            })
+            .catch((err) => {
+              console.error("Video play error:", err);
+            });
+        } else {
+          console.error("Video element not found");
+        }
+      });
+    </script>
+    {% else %}
+    <div
+      style="
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        padding: 10px;
+        z-index: 9999;
+      "
+    >
+      No video configured. Create config.json in videos folder.
+    </div>
+    {% endif %}
+
+    <div class="container">
+      <header>
+        <div class="logo">Solace<span>.</span></div>
+        <nav>
+          <ul>
+            <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+            <li><a href="{{ url_for('auth.sign_up') }}">Sign Up</a></li>
+          </ul>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <h1>Welcome to Solace</h1>
+        <p>
+          Your personal AI companion for emotional well-being. Solace provides a
+          safe space to express your thoughts, track your mood, and gain
+          insights into your emotional journey.
+        </p>
+        <a href="{{ url_for('auth.login') }}" class="btn">Get Started</a>
+      </section>
+
+      <section class="features">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-comments"></i>
+          </div>
+          <h3>Supportive Conversations</h3>
+          <p>
+            Engage in meaningful conversations with Solace, designed to provide
+            emotional support and understanding.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3>Mood Tracking</h3>
+          <p>
+            Track your emotional well-being over time with intuitive
+            visualizations and personalized insights.
+          </p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-lightbulb"></i>
+          </div>
+          <h3>Personalized Insights</h3>
+          <p>
+            Receive tailored recommendations and insights based on your
+            emotional patterns and needs.
+          </p>
+        </div>
+      </section>
+
+      <footer>
+        <p>&copy; 2023 Solace. All rights reserved.</p>
+      </footer>
+    </div>
+
+    {% if current_user.is_authenticated and current_user.is_admin %}
+    <a href="{{ url_for('video.video_upload') }}" class="admin-link"
+      >Manage Background Video</a
+    >
+    {% endif %}
+  </body>
+</html>

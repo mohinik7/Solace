@@ -1,35 +1,151 @@
-{% extends "base.html" %}
-{% block title %}Your Chat Sessions{% endblock %}
-{% block content %}
-<h2>Your Chat Sessions</h2>
-<a href="{{ url_for('chat.new_chat') }}" class="btn btn-primary mb-3">New Chat</a>
-<ul class="list-group">
-  {% for session in sessions %}
-  <li class="list-group-item d-flex justify-content-between align-items-center" style="background-color: #2a2a2a; color: #fff;">
-    <div>
-      <a href="{{ url_for('chat.chat_page', session_id=session.id) }}" style="color: #f1c40f;">
-        {{ session.session_name }} ({{ session.created_at|to_ist }})
-      </a>      
+{% extends "base.html" %} {% block title %}Your Chat Sessions - Solace{%
+endblock %} {% block content %}
+<div class="container sessions-container fade-in">
+  <div class="row mb-4">
+    <div class="col-12 text-center">
+      <h1 class="section-title display-4">Your Conversations</h1>
     </div>
-    <div>
-      <!-- Edit button -->
-      <a href="{{ url_for('chat.edit_chat', session_id=session.id) }}" class="btn btn-warning btn-sm">Edit</a>
-      <!-- Delete form -->
-      <form
-        action="{{ url_for('chat.delete_chat', session_id=session.id) }}"
-        method="post"
-        style="display:inline;"
-        onsubmit="return confirm('Are you sure you want to delete this session?');"
-      >
-        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-      </form>
-    </div>
-  </li>
-  {% else %}
-  <li class="list-group-item" style="background-color: #2a2a2a; color: #fff;">
-    No chat sessions found.
-  </li>
-  {% endfor %}
-</ul>
-{% endblock %}
+  </div>
 
+  <div class="row justify-content-end mb-4">
+    <div class="col-auto">
+      <a href="{{ url_for('chat.new_chat') }}" class="btn btn-primary btn-lg">
+        <i class="fas fa-plus-circle me-2"></i> Start New Chat
+      </a>
+    </div>
+  </div>
+
+  <div class="row session-cards-container">
+    {% if sessions %} {% for session in sessions %}
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="card session-card h-100">
+        <div class="card-body">
+          <h5 class="card-title">
+            <i class="fas fa-comment-dots me-2"></i>
+            {{ session.session_name }}
+          </h5>
+          <p class="card-text text-muted">
+            <i class="fas fa-calendar-alt me-1"></i>
+            {{ session.created_at|format_datetime }}
+          </p>
+        </div>
+        <div class="card-footer d-flex justify-content-between">
+          <a
+            href="{{ url_for('chat.chat_page', session_id=session.id) }}"
+            class="btn btn-primary"
+          >
+            <i class="fas fa-comments me-1"></i> Continue
+          </a>
+          <div>
+            <a
+              href="{{ url_for('chat.edit_chat', session_id=session.id) }}"
+              class="btn btn-secondary"
+            >
+              <i class="fas fa-edit"></i>
+            </a>
+            <button
+              class="btn btn-danger"
+              onclick="confirmDelete({{ session.id }})"
+              data-bs-toggle="tooltip"
+              data-bs-placement="top"
+              title="Delete session"
+            >
+              <i class="fas fa-trash-alt"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %} {% else %}
+    <div class="col-12 text-center no-sessions">
+      <div class="empty-state">
+        <div class="empty-state-icon">
+          <i class="fas fa-satellite-dish"></i>
+        </div>
+        <h3 class="mt-4">No conversations yet</h3>
+        <p class="text-muted">
+          Start a new chat to begin your journey with Solace
+        </p>
+        <a
+          href="{{ url_for('chat.new_chat') }}"
+          class="btn btn-primary btn-lg mt-3"
+        >
+          <i class="fas fa-plus-circle me-2"></i> Start New Chat
+        </a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div
+  class="modal fade"
+  id="deleteModal"
+  tabindex="-1"
+  aria-labelledby="deleteModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete this chat session? This action cannot be
+        undone.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <form id="deleteForm" method="POST">
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block additional_styles %} .sessions-container {
+padding-bottom: 6rem; } .section-title { margin-top: 2rem; text-shadow: 0 0 15px
+rgba(255, 215, 0, 0.5); } .session-card { background-color: rgba(30, 30, 42,
+0.7); border: 1px solid rgba(255, 215, 0, 0.2); border-radius: 15px; box-shadow:
+0 10px 20px rgba(0, 0, 0, 0.3); transition: transform 0.3s ease, box-shadow 0.3s
+ease; backdrop-filter: blur(5px); overflow: hidden; } .session-card:hover {
+transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4); }
+.session-card .card-title { color: var(--secondary-color); font-weight: 600; }
+.session-card .card-body { padding: 1.5rem; } .session-card .card-footer {
+background-color: rgba(20, 20, 30, 0.7); border-top: 1px solid rgba(255, 215, 0,
+0.2); padding: 1rem; } .empty-state { padding: 4rem 2rem; text-align: center; }
+.empty-state-icon { background: linear-gradient(45deg, var(--primary-color),
+var(--accent-color)); color: var(--secondary-color); width: 100px; height:
+100px; border-radius: 50%; display: flex; align-items: center; justify-content:
+center; margin: 0 auto; font-size: 3rem; box-shadow: 0 0 30px rgba(138, 43, 226,
+0.5); } /* Modal styling to match theme */ .modal-content { background-color:
+rgba(30, 30, 42, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,
+215, 0, 0.3); border-radius: 15px; box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5); }
+.modal-header, .modal-footer { border-color: rgba(255, 215, 0, 0.2); }
+.modal-header .btn-close { color: var(--text-color); } /* Footer spacing
+adjustment */ footer { margin-top: 3rem; } {% endblock %} {% block scripts %}
+<script>
+  function confirmDelete(sessionId) {
+    const form = document.getElementById("deleteForm");
+    form.action = "{{ url_for('chat.delete_chat', session_id=0) }}".replace(
+      "0",
+      sessionId
+    );
+
+    // Open the modal
+    const deleteModal = new bootstrap.Modal(
+      document.getElementById("deleteModal")
+    );
+    deleteModal.show();
+  }
+</script>
+{% endblock %}
