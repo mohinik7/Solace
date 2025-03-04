@@ -1,82 +1,87 @@
 {% extends "base.html" %} {% block title %}Login - Solace{% endblock %} {% block
 content %}
 <div class="container login-container fade-in">
-  <div class="row justify-content-center mt-5">
-    <div class="col-md-6 col-lg-5">
+  <div class="row justify-content-center align-items-center min-vh-80">
+    <div class="col-md-10 col-lg-8">
       <div class="card">
-        <div class="card-header py-3">
-          <h3 class="text-center mb-0">Welcome Back</h3>
-        </div>
-        <div class="card-body">
-          <div class="text-center mb-4">
-            <div class="avatar-icon mb-3">
-              <i
-                class="fas fa-user-astronaut fa-4x"
-                style="color: var(--secondary-color)"
-              ></i>
-            </div>
-            <p class="lead">
-              Begin your journey through the cosmos of emotions
-            </p>
-          </div>
-
-          <form method="POST">
-            <div class="mb-3">
-              <label for="email" class="form-label">Email Address</label>
-              <div class="input-group">
-                <span class="input-group-text bg-transparent border-end-0">
-                  <i
-                    class="fas fa-envelope"
-                    style="color: var(--secondary-color)"
-                  ></i>
-                </span>
-                <input
-                  type="email"
-                  class="form-control border-start-0"
-                  id="email"
-                  name="email"
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
-            </div>
-
-            <div class="mb-4">
-              <label for="password" class="form-label">Password</label>
-              <div class="input-group">
-                <span class="input-group-text bg-transparent border-end-0">
-                  <i
-                    class="fas fa-lock"
-                    style="color: var(--secondary-color)"
-                  ></i>
-                </span>
-                <input
-                  type="password"
-                  class="form-control border-start-0"
-                  id="password"
-                  name="password"
-                  placeholder="Enter your password"
-                  required
-                />
-              </div>
-            </div>
-
-            <div class="d-grid gap-2 mb-4">
-              <button type="submit" class="btn btn-primary py-2">Login</button>
-            </div>
-
-            <div class="text-center">
-              <p>
-                Don't have an account?
-                <a
-                  href="{{ url_for('auth.sign_up') }}"
-                  class="text-decoration-none"
+        <div class="row g-0">
+          <div class="col-md-6">
+            <div class="card-body px-4 py-5 text-center">
+              <div class="avatar-icon mb-4">
+                <i
+                  class="fas fa-user-astronaut fa-3x"
                   style="color: var(--secondary-color)"
-                  >Sign up here</a
-                >
+                ></i>
+              </div>
+              <h3 class="mb-4">Welcome Back</h3>
+              <p class="lead mb-5">
+                Begin your journey through the cosmos of emotions
               </p>
             </div>
-          </form>
+          </div>
+          <div class="col-md-6">
+            <div class="card-body px-4 py-5">
+              <form method="POST">
+                <div class="mb-4">
+                  <label for="email" class="form-label">Email Address</label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0">
+                      <i
+                        class="fas fa-envelope"
+                        style="color: var(--secondary-color)"
+                      ></i>
+                    </span>
+                    <input
+                      type="email"
+                      class="form-control border-start-0"
+                      id="email"
+                      name="email"
+                      placeholder="Enter your email"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="mb-4">
+                  <label for="password" class="form-label">Password</label>
+                  <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0">
+                      <i
+                        class="fas fa-lock"
+                        style="color: var(--secondary-color)"
+                      ></i>
+                    </span>
+                    <input
+                      type="password"
+                      class="form-control border-start-0"
+                      id="password"
+                      name="password"
+                      placeholder="Enter your password"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="d-grid gap-2 mb-4">
+                  <button type="submit" class="btn btn-primary py-2">
+                    Login
+                  </button>
+                </div>
+
+                <div class="text-center">
+                  <p class="mb-0">
+                    Don't have an account?
+                    <a
+                      href="{{ url_for('auth.sign_up') }}"
+                      class="text-decoration-none"
+                      style="color: var(--secondary-color)"
+                      >Sign up here</a
+                    >
+                  </p>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -92,10 +97,15 @@ content %}
     </div>
   </div>
 </div>
-{% endblock %} {% block additional_styles %} .login-container { padding-bottom:
-6rem; } .avatar-icon { width: 80px; height: 80px; margin: 0 auto; display: flex;
+{% endblock %} {% block additional_styles %} .login-container { padding: 2rem
+1rem; max-width: 1200px; margin: 0 auto; } .min-vh-80 { min-height: 80vh; }
+.avatar-icon { width: 80px; height: 80px; margin: 0 auto; display: flex;
 align-items: center; justify-content: center; background: rgba(75, 0, 130, 0.3);
 border-radius: 50%; border: 2px solid var(--secondary-color); box-shadow: 0 0
-20px rgba(255, 215, 0, 0.4); } .input-group-text { color: var(--text-color); }
-.card { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); } .back-link {
-margin-bottom: 20px; } {% endblock %}
+20px rgba(255, 215, 0, 0.4); } .input-group-text { color: var(--text-color);
+min-width: 45px; justify-content: center; } .card { box-shadow: 0 10px 30px
+rgba(0, 0, 0, 0.4); border-radius: 20px; overflow: hidden; } .form-control {
+padding: 0.8rem 1rem; font-size: 1rem; } .btn-primary { padding: 0.8rem 2rem;
+font-size: 1.1rem; } .back-link { margin-bottom: 20px; } @media (max-width:
+768px) { .login-container { padding: 1rem; } .card-body { padding: 2rem 1.5rem;
+} } {% endblock %}
