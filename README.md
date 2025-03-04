@@ -78,15 +78,5 @@ Solace is a comprehensive mental health companion designed to help users track, 
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 📝 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgements
-
-- Special thanks to all the contributors and users who have helped shape Solace
-- Inspiration drawn from various mental health applications and space-themed designs
-
----
 
 <p align="center">Made with ❤️ for better mental health</p>
